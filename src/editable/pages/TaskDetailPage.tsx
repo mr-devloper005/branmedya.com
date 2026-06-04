@@ -7,7 +7,7 @@ import { buildPostUrl, fetchArticleComments, fetchTaskPostBySlug, fetchTaskPosts
 import { getTaskConfig, SITE_CONFIG, type TaskKey } from '@/lib/site-config'
 import type { SitePost } from '@/lib/site-connector'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
-import { getVisualPreset, visualSystem } from '@/editable/theme/visual-system'
+import { slot4BrandConfig } from '@/editable/theme/brand.config'
 
 export const revalidate = 3
 
@@ -62,6 +62,7 @@ const escapeHtml = (value: string) => value
   .replace(/'/g, '&#39;')
 
 const safeUrl = (value: string) => /^https?:\/\//i.test(value) ? value : '#'
+const outboundUrl = (value: string) => value ? (/^https?:\/\//i.test(value) ? value : `https://${value}`) : ''
 
 const linkifyMarkdown = (value: string) => value
   .replace(/\[([^\]]+)]\((https?:\/\/[^\s)]+)\)/gi, (_match, label, url) => `<a href="${safeUrl(url)}" target="_blank" rel="nofollow noopener noreferrer">${label}</a>`)
@@ -105,8 +106,7 @@ const mapSrcFor = (post: SitePost) => {
 }
 
 export function TaskDetailView({ task, post, related, comments = [] }: { task: TaskKey; post: SitePost; related: SitePost[]; comments?: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
-  const preset = getVisualPreset(visualSystem.recommendedPreset as any)
-  const detailVars = { '--detail-bg': preset.colors.background, '--detail-text': preset.colors.foreground, '--detail-surface': preset.colors.surface, '--detail-accent': preset.colors.accent } as CSSProperties
+  const detailVars = { '--detail-bg': '#f5f7f5', '--detail-text': '#25211f', '--detail-surface': '#ffffff', '--detail-accent': '#00a651' } as CSSProperties
 
   return (
     <EditableSiteShell>
@@ -157,30 +157,86 @@ function ListingDetail({ post, related }: { post: SitePost; related: SitePost[] 
   const email = getField(post, ['email'])
   const website = getField(post, ['website', 'url'])
   const mapSrc = mapSrcFor(post)
+  const category = categoryOf(post, 'Business')
+  const initials = post.title.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'B'
+  const shareHref = `mailto:?subject=${encodeURIComponent(post.title)}&body=${encodeURIComponent(website || address || post.title)}`
   return (
-    <section className="mx-auto max-w-[var(--editable-container)] px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+    <section className="mx-auto max-w-[var(--editable-container)] px-4 py-8 sm:px-6 lg:px-0 lg:py-10">
       <BackLink task="listing" />
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-        <article className="rounded-[2.8rem] border border-[var(--editable-border)] bg-white p-6 shadow-[0_30px_90px_rgba(15,23,42,0.09)] sm:p-9">
-          <div className="grid gap-6 sm:grid-cols-[150px_1fr]">
-            <div className="flex h-36 w-36 items-center justify-center overflow-hidden rounded-[2rem] bg-[var(--detail-bg)] ring-1 ring-[var(--editable-border)]">
-              {logo ? <img src={logo} alt="" className="h-full w-full object-cover" /> : <Building2 className="h-14 w-14 opacity-40" />}
+      <div className="mt-6 grid gap-8 lg:grid-cols-[270px_minmax(0,1fr)]">
+        <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">
+          <div className="rounded-md border border-[var(--editable-border)] bg-white p-5">
+            <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-[#d7dce2] text-7xl font-semibold text-slate-600">
+              {logo ? <img src={logo} alt="" className="h-full w-full object-cover" /> : initials}
             </div>
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--detail-accent)]">Business listing</p>
-              <h1 className="mt-3 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-6xl">{post.title}</h1>
-              <p className="mt-5 max-w-3xl text-base leading-8 opacity-70">{summaryText(post)}</p>
+            <div className="mt-5 flex items-center gap-3">
+              <CheckCircle2 className="h-9 w-9 rounded-full bg-[#00a651] p-1.5 text-white" />
+              <div>
+                <h2 className="text-2xl font-black">Claimed</h2>
+                <p className="mt-1 text-sm text-slate-600">Owner details are available for this profile.</p>
+              </div>
+            </div>
+            <Link href="/contact" className="mt-5 inline-flex w-full items-center justify-center rounded-md bg-[#00a651] px-4 py-3 text-sm font-black text-white">Dispute or update claim</Link>
+          </div>
+
+          <div className="rounded-md border border-[var(--editable-border)] bg-white p-5">
+            <h2 className="text-2xl font-black">Reviews</h2>
+            <p className="mt-2 text-sm text-slate-600">There are no reviews yet.</p>
+            <Link href="/contact" className="mt-4 inline-flex rounded-md bg-[#00a651] px-4 py-2.5 text-sm font-black text-white">Write a review</Link>
+          </div>
+
+          <div className="rounded-md border border-[var(--editable-border)] bg-white p-5">
+            <h2 className="text-2xl font-black">Business Hours</h2>
+            <div className="mt-4 grid gap-1 text-sm text-slate-700">
+              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                <p key={day} className="flex justify-between gap-4"><span>{day}:</span><span className="font-semibold">8:00AM - 8:00PM</span></p>
+              ))}
             </div>
           </div>
+
+          <div className="rounded-md border border-[var(--editable-border)] bg-white p-5">
+            <h2 className="text-2xl font-black">Additional info</h2>
+            <p className="mt-3 text-sm text-slate-700">M-Su 8am-8pm</p>
+            <Link href="/contact" className="mt-5 inline-flex rounded-md bg-slate-600 px-4 py-2.5 text-sm font-black text-white">Report listing</Link>
+          </div>
+        </aside>
+
+        <article className="min-w-0 rounded-md border border-[var(--editable-border)] bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--editable-border)] pb-5">
+            <div>
+              <h1 className="text-4xl font-semibold leading-tight tracking-tight">{post.title}</h1>
+              <p className="mt-2 text-base font-medium text-slate-800">{category} {address ? <span className="ml-2">{address}</span> : null}</p>
+              {phone ? <a href={`tel:${phone}`} className="mt-4 block text-sm font-semibold text-[#25211f] hover:text-[#00a651]">{phone}</a> : null}
+              {website ? <Link href={outboundUrl(website)} target="_blank" rel="noreferrer" className="mt-1 block break-all text-sm font-semibold underline underline-offset-4 hover:text-[#00a651]">{website}</Link> : null}
+            </div>
+            <a href={shareHref} className="inline-flex min-w-36 items-center justify-center rounded-md bg-[#00a651] px-6 py-3 text-sm font-black text-white">Share</a>
+          </div>
+
+          {mapSrc ? <MapBox src={mapSrc} label={address || post.title} /> : null}
           <InfoGrid items={[['Location', address, MapPin], ['Phone', phone, Phone], ['Email', email, Mail], ['Website', website, Globe2]]} />
           <BodyContent post={post} />
           <ImageStrip images={images.slice(1)} label="Business showcase" />
+
+          <div className="mt-8 grid gap-6 border-t border-[var(--editable-border)] pt-6 sm:grid-cols-2">
+            <div>
+              <h2 className="text-2xl font-black">Business tags</h2>
+              <Link href={`/search?category=${encodeURIComponent(category)}`} className="mt-4 inline-block text-sm font-semibold hover:text-[#00a651]">{category}</Link>
+            </div>
+            <div>
+              <h2 className="text-2xl font-black">Location tags</h2>
+              <Link href={`/search?q=${encodeURIComponent(address || 'Worldwide')}`} className="mt-4 inline-block text-sm font-semibold hover:text-[#00a651]">{address || 'Worldwide'}</Link>
+            </div>
+          </div>
+
+          <section className="mt-9 border-t border-[var(--editable-border)] pt-6">
+            <h2 className="text-2xl font-black">Reviews</h2>
+            <div className="mt-8 rounded-md bg-[#f5f7f5] p-8 text-center text-sm font-medium text-slate-700">There are no comments.</div>
+          </section>
+
+          <div className="mt-8">
+            <RelatedPanel task="listing" post={post} related={related} compact />
+          </div>
         </article>
-        <aside className="space-y-5">
-          {mapSrc ? <MapBox src={mapSrc} label={address || post.title} /> : <ContactAction website={website} phone={phone} email={email} />}
-          {mapSrc ? <ContactAction website={website} phone={phone} email={email} /> : null}
-          <RelatedPanel task="listing" post={post} related={related} compact />
-        </aside>
       </div>
     </section>
   )
@@ -363,7 +419,7 @@ function ContactAction({ website, phone, email }: { website?: string; phone?: st
     <div className="mt-5 rounded-[2rem] border border-[var(--editable-border)] bg-white p-5 shadow-sm">
       <p className="text-xs font-black uppercase tracking-[0.22em] opacity-55">Quick actions</p>
       <div className="mt-4 flex flex-wrap gap-3">
-        {website ? <Link href={website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-[var(--detail-text)] px-4 py-2 text-sm font-black text-[var(--detail-bg)]">Website <ExternalLink className="h-4 w-4" /></Link> : null}
+        {website ? <Link href={outboundUrl(website)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md bg-[#00a651] px-4 py-2 text-sm font-black text-white">Website <ExternalLink className="h-4 w-4" /></Link> : null}
         {phone ? <a href={`tel:${phone}`} className="inline-flex items-center gap-2 rounded-full border border-[var(--editable-border)] px-4 py-2 text-sm font-black"><Phone className="h-4 w-4" /> Call</a> : null}
         {email ? <a href={`mailto:${email}`} className="inline-flex items-center gap-2 rounded-full border border-[var(--editable-border)] px-4 py-2 text-sm font-black"><Mail className="h-4 w-4" /> Email</a> : null}
       </div>
@@ -384,8 +440,7 @@ function RelatedPanel({ task, post, related, compact = false }: { task: TaskKey;
           <p className="text-xs font-black uppercase tracking-[0.22em] opacity-55">About this post</p>
           <div className="mt-4 grid gap-3 text-sm font-bold opacity-75">
             <p className="inline-flex items-center gap-2"><Tag className="h-4 w-4" /> Task: {taskConfig?.label || task}</p>
-            <p className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Site: {SITE_CONFIG.name}</p>
-            {post.publishedAt ? <p>Published: {new Date(post.publishedAt).toLocaleDateString()}</p> : null}
+            <p className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Site: {slot4BrandConfig.siteName}</p>
           </div>
         </div>
       ) : null}
