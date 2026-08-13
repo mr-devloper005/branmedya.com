@@ -2,7 +2,7 @@
 
 import { FormEvent, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Building2, CheckCircle2, FileText, ImageIcon, Lock, PlusCircle, Send, Sparkles } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Lock, Send } from 'lucide-react'
 import { SITE_CONFIG, type TaskKey } from '@/lib/site-config'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 import { useEditableLocalAuthSession } from '@/editable/components/EditableLocalAuthForms'
@@ -22,16 +22,6 @@ type DraftPost = {
 
 const STORE_KEY = 'slot4:created-posts'
 
-const taskIcon: Record<string, typeof FileText> = {
-  article: FileText,
-  listing: Building2,
-  classified: PlusCircle,
-  image: ImageIcon,
-  profile: Sparkles,
-  pdf: FileText,
-  sbm: ArrowRight,
-}
-
 const fieldClass = 'rounded-md border border-black/15 bg-white px-4 py-3 text-sm font-bold text-[#25211f] outline-none transition placeholder:text-slate-500 focus:border-[#00a651]'
 
 const saveDraft = (draft: DraftPost) => {
@@ -50,7 +40,7 @@ export default function CreatePage() {
     const listing = SITE_CONFIG.tasks.filter((task) => task.enabled && task.key === 'listing')
     return listing.length ? listing : SITE_CONFIG.tasks.filter((task) => task.enabled)
   }, [])
-  const [task, setTask] = useState<TaskKey>((enabledTasks[0]?.key || 'listing') as TaskKey)
+  const [task] = useState<TaskKey>((enabledTasks[0]?.key || 'listing') as TaskKey)
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
   const [summary, setSummary] = useState('')
@@ -116,19 +106,6 @@ export default function CreatePage() {
               <p className="text-xs font-black uppercase tracking-[0.28em] opacity-55">{pagesContent.create.hero.badge}</p>
               <h1 className="mt-5 text-5xl font-black leading-[0.92] tracking-[-0.08em] sm:text-7xl">{pagesContent.create.hero.title}</h1>
               <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-slate-600">{pagesContent.create.hero.description}</p>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {enabledTasks.map((item) => {
-                  const Icon = taskIcon[item.key] || FileText
-                  const active = item.key === task
-                  return (
-                    <button key={item.key} type="button" onClick={() => setTask(item.key)} className={`rounded-md border p-4 text-left transition ${active ? 'border-[#00a651] bg-[#00a651] text-white' : 'border-black/10 bg-[#f5f7f5] hover:-translate-y-0.5'}`}>
-                      <Icon className="h-5 w-5" />
-                      <span className="mt-3 block text-sm font-black">{item.label}</span>
-                      <span className="mt-1 block text-xs font-semibold opacity-65">{item.description}</span>
-                    </button>
-                  )
-                })}
-              </div>
             </aside>
 
             <form onSubmit={submit} className="rounded-md border border-black/10 bg-[#f5f7f5] p-5 sm:p-7">

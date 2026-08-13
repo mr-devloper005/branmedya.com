@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Building2, CheckCircle2, Globe2, MapPin, Search, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Globe2, ShieldCheck, Sparkles } from 'lucide-react'
 import type { SitePost } from '@/lib/site-connector'
 import type { HomeTimeSection } from '@/lib/task-data'
 import type { TaskKey } from '@/lib/site-config'
@@ -70,7 +70,7 @@ function DirectoryCard({ post, href, compact = false }: { post: SitePost; href: 
   )
 }
 
-export function EditableHomeHero({ primaryTask, primaryRoute, posts }: HomeSectionProps) {
+export function EditableHomeHero({ posts }: HomeSectionProps) {
   const heroTitle = pagesContent.home.hero.title.join(' ')
   const count = posts.length ? `${Math.max(posts.length * 4200, 42000).toLocaleString()}+` : '44.6m'
   return (
